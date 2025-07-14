@@ -133,9 +133,13 @@ export abstract class ExplainCommandBase extends GlCommandBase {
 		result: AISummarizeResult,
 		metadata: MarkdownContentMetadata,
 	): void {
-		const metadataWithContext: MarkdownContentMetadata = { ...metadata, context: getAIResultContext(result) };
+		const context = getAIResultContext(result);
+		const metadataWithContext: MarkdownContentMetadata = { ...metadata, context: context };
 		const headerContent = getMarkdownHeaderContent(metadataWithContext, this.container.telemetry.enabled);
 		const content = `${headerContent}\n\n${result.parsed.summary}\n\n${result.parsed.body}`;
+
+		// Store the AI result context in the feedback provider for documents that cannot store it in their URI
+		this.container.aiFeedback.setMarkdownDocument(documentUri.toString(), context);
 
 		this.container.markdown.updateDocument(documentUri, content);
 	}
